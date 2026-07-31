@@ -1,0 +1,5 @@
+<fonts>
+    <font id="Eurostar" filename="eurostar.fnt" antialias="true" />
+    <font id="Led" filename="led.fnt" antialias="false" />
+    <font id="Moon" filename="moon.fnt" antialias="true" />
+</fonts>

@@ -1,0 +1,37 @@
+info face="LED" size=25 bold=0 italic=0 smooth=1 spacing=1,1
+common lineHeight=27 base=27 scaleW=260 scaleH=56 pages=1
+page id=0 file="led.png"
+
+chars count=25
+
+char id=48 x=0   y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=49 x=20  y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=50 x=40  y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=51 x=60  y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=52 x=80  y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=53 x=100 y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=54 x=120 y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=55 x=140 y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=56 x=160 y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=57 x=180 y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+
+char id=45  x=200 y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=170 x=220 y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=37  x=240 y=0 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+
+
+char id=36 x=0  y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+
+char id=97  x=20  y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=101 x=40  y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=103 x=60  y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=99  x=80  y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=104 x=100 y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=100 x=120 y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=102 x=140 y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=98  x=160 y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=58  x=180 y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=46  x=200 y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+char id=107 x=220 y=28 width=20 height=27 xoffset=0 yoffset=0 xadvance=22 page=0
+
+char id=32 x=240 y=328  width=1 height=27 xoffset=0 yoffset=0 xadvance=22 page=0

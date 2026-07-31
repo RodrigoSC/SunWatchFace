@@ -1,0 +1,42 @@
+<layout id="WatchFace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <bitmap id="SkySun" filename="sky-sun.png" visible="false"/>
+    <bitmap id="SkyNight" filename="sky-night.png" visible="false"></bitmap>
+    <bitmap id="Sun" filename="sun.png" visible="false"></bitmap>
+    <label id="Moon" font="@Fonts.Moon" color="Graphics.COLOR_WHITE"></label>
+    <bitmap id="Background" filename="background.png"  />
+    
+    <label id="NotifsLabel" x="25%" y="65%"
+        font="@Fonts.Eurostar" justification="Graphics.TEXT_JUSTIFY_CENTER"
+        color="Graphics.COLOR_WHITE" text="NOTIFS" />
+    <label id="NotifsBg" x="105" y="358"
+        font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_CENTER" color="#373737" />
+    <label
+        id="Notifs" x="105" y="358" font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_CENTER"
+        color="Graphics.COLOR_LT_GRAY" />
+
+    <label id="StepsLabel" x="50%" y="65%"
+        font="@Fonts.Eurostar" justification="Graphics.TEXT_JUSTIFY_CENTER"
+        color="Graphics.COLOR_WHITE" text="STEPS" />
+    <label id="StepsBg" x="227" y="358"
+        font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_CENTER" color="#373737" />
+    <label
+        id="Steps" x="227" y="358" font="@Fonts.Led"
+        justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_LT_GRAY" />
+    
+    <label
+        id="FloorsLabel" x="75%" y="65%" font="@Fonts.Eurostar"
+        justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" text="FLOORS" />
+    <label
+        id="FloorsBg" x="349" y="75%" font="@Fonts.Led"
+        justification="Graphics.TEXT_JUSTIFY_CENTER" color="#373737" />
+    <label id="Floors"
+        x="349" y="358" font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_CENTER"
+        color="Graphics.COLOR_LT_GRAY" />
+
+    <label id="WeatherBg" x="50%" y="80%"
+        font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_CENTER" color="#373737" />
+    <label
+        id="Weather" x="50%" y="80%" font="@Fonts.Led"
+        justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_LT_GRAY" />
+
+</layout>
