@@ -1,6 +1,6 @@
 info face="Moon" size=45 bold=0 italic=0 smooth=1 spacing=1,1
 common lineHeight=45 base=45 scaleW=725 scaleH=45 pages=1
-page id=0 file="moon.jpg"
+page id=0 file="moon.png"
 
 chars count=15
 
@@ -19,3 +19,4 @@ char id=76 x=528  y=0 width=45 height=45 xoffset=0 yoffset=0 xadvance=45 page=0
 char id=77 x=576  y=0 width=45 height=45 xoffset=0 yoffset=0 xadvance=45 page=0
 char id=78 x=624  y=0 width=45 height=45 xoffset=0 yoffset=0 xadvance=45 page=0
 char id=79 x=672  y=0 width=45 height=45 xoffset=0 yoffset=0 xadvance=45 page=0
+char id=80 x=721  y=0 width=45 height=45 xoffset=0 yoffset=0 xadvance=45 page=0

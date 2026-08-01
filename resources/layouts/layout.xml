@@ -5,6 +5,12 @@
     <label id="Moon" font="@Fonts.Moon" color="Graphics.COLOR_WHITE"></label>
     <bitmap id="Background" filename="background.png"  />
     
+    <label id="DateBg" x="95%" y="center"
+        font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_RIGHT" color="#373737" />
+    <label
+        id="Date" x="95%" y="center" font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_RIGHT"
+        color="Graphics.COLOR_LT_GRAY" />
+
     <label id="NotifsLabel" x="25%" y="65%"
         font="@Fonts.Eurostar" justification="Graphics.TEXT_JUSTIFY_CENTER"
         color="Graphics.COLOR_WHITE" text="NOTIFS" />

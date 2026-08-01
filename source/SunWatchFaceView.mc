@@ -4,25 +4,21 @@ import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
 import Toybox.ActivityMonitor;
-import Toybox.Position;
 import Toybox.Time;
-import Toybox.Time.Gregorian;
-import Toybox.Weather;
 
 class SunWatchFaceView extends WatchUi.WatchFace {
     private var lastSlowUpdate as Number? = null;
-    private var weather as Dictionary = {};
-    private var location as Position.Location? = null;
+    private var watch_data as WatchData = new WatchData();
 
     private var screenWidth as Number, screenHeight as Number;
 
     //private var showSeconds as Boolean = true;
-    
-    private const colorDim = 0xFFD3D3D3;
+
+    private const colorDim = 0xD3FFFFFF;
     private const showWeather = true;
-    // Moon-phase font glyphs, thinnest waxing crescent (O) to full (H) to
-    // thinnest waning crescent (A).
-    private const moonPhaseChars = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O"];
+    // Moon-phase font glyphs, evenly spaced around the cycle: A is new moon
+    // (phase 0), I is full moon (phase 0.5).
+    private const moonPhaseChars = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P"];
 
     function initialize() {
         WatchFace.initialize();
@@ -46,22 +42,28 @@ class SunWatchFaceView extends WatchUi.WatchFace {
     function onUpdate(dc as Dc) as Void {
         // Get the current time and format it correctly
         var clockTime = System.getClockTime();
-        var unix_timestamp = Time.now().value();
+        var now = Time.now();
+        var unix_timestamp = now.value();
 
         if(clockTime.sec % 60 == 0 or lastSlowUpdate == null or unix_timestamp - lastSlowUpdate >= 60) {
             lastSlowUpdate = unix_timestamp;
-            updateWeather();
+            watch_data.update();
         }
+        watch_data.refreshSunPosition();
 
         adjustPositions();
 
-        if (weather["Temp"] != null and showWeather) {
-            var tempData = weather["Temp"].format("%d") + "ª";
-            if (weather["WindSpeed"] != null && weather["WindBear"] != null) {
-                tempData += weather["WindSpeed"].format("%d") + getWindChar(weather["WindBear"]) ;
+        var temp = watch_data.Temp;
+        if (temp != null and showWeather) {
+            var tempData = temp.format("%d") + "ª";
+            var windSpeed = watch_data.WindSpeed;
+            var windBear = watch_data.WindBear;
+            if (windSpeed != null && windBear != null) {
+                tempData += windSpeed.format("%d") + getWindChar(windBear) ;
             }
-            if (weather["Rain"] != null) {
-                tempData += weather["Rain"] + "%";
+            var rain = watch_data.Rain;
+            if (rain != null) {
+                tempData += rain.format("%d") + "%";
             }
             writeToLED("Weather",tempData);
         }
@@ -74,6 +76,10 @@ class SunWatchFaceView extends WatchUi.WatchFace {
             ? toThousands(notifications)
             : "--";
         writeToLED("Notifs",padNumber(notifStr));
+
+        var dt = Gregorian.info(now, Time.FORMAT_LONG);
+        var dateStr = Lang.format("$1$ $2$", [dt.day_of_week, dt.day]);
+        writeToLED("Date",dateStr.toUpper());
 
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
@@ -175,6 +181,7 @@ class SunWatchFaceView extends WatchUi.WatchFace {
 
         // Hollow blade running the full length of the hand
         tmpDc.setColor(handColour, Graphics.COLOR_TRANSPARENT);
+        tmpDc.setStroke(handColour);
         tmpDc.setPenWidth(strokeWidth);
         tmpDc.drawRectangle(half, half, width, height + centerOffset);
 
@@ -196,139 +203,21 @@ class SunWatchFaceView extends WatchUi.WatchFace {
         });
     }
 
-    function updateWeather() {
-        var cc = Weather.getCurrentConditions();
-        if (cc != null) {
-            var loc = cc.observationLocationPosition;
-            var now = Time.now();
-            weather["Temp"] = cc.temperature as Number;
-            weather["WindBear"] = cc.windBearing as Number;
-            weather["WindSpeed"] = cc.windSpeed as Number;
-            weather["Rain"] = cc.precipitationChance as Number;
-            weather["Night"] = false;
-            if (loc != null) {
-                location = loc;
-                var sunrise = Weather.getSunrise(loc, now);
-                var sunset = Weather.getSunset(loc, now);
-                if (sunrise.lessThan(now)) { 
-                    //if sunrise was already, take tomorrows
-                    sunrise = Weather.getSunrise(loc, Time.today().add(new Time.Duration(86401)));
-                } else {
-                    weather["Night"] = true;
-                }
-                if (sunset.lessThan(now)) { 
-                    //if sunset was already, take tomorrows
-                    weather["Night"] = true;
-                    sunset = Weather.getSunset(loc, Time.today().add(new Time.Duration(86401)));
-                }
-                weather["Sunrise"] = sunrise;
-                weather["Sunset"] = sunset;
-            } else {
-                weather["Sunrise"] = null;
-                weather["Sunset"] = null;
-            }
-        }
-    }
-
-    // Angle of the sun in the sky: 5*PI/6 at sunrise (upper left), PI/2 at
-    // solar noon (top), PI/6 at sunset (upper right) -- standard polar
-    // angle, sweeping left to right across the day, then continuing on
-    // down and back around to 5*PI/6 across the bottom overnight.
-    function getSunAngle() as Float {
-        return toSkyAngle(getSunRawAngle());
-    }
-
-    // Approximates the moon's position by offsetting the sun's arc by the
-    // current lunar phase: at a new moon the offset is 0 (moon tracks the
-    // sun), at a full moon it's PI (moon is opposite the sun), etc. This
-    // avoids needing a full lunar ephemeris, at the cost of accuracy.
-    function getMoonAngle() as Float {
-        var raw = getSunRawAngle() + getMoonPhase() * 2 * Math.PI;
-        return toSkyAngle(raw);
-    }
-
-    // Raw angle in 0..2*PI, with 0 = sunrise, PI = sunset.
-    function getSunRawAngle() as Float {
-        var loc = location;
-        if (loc == null) {
-            return Math.PI;
-        }
-
-        var now = Time.now();
-        var today = Time.today();
-        var sunrise = Weather.getSunrise(loc, today);
-        var sunset = Weather.getSunset(loc, today);
-        if (sunrise == null || sunset == null) {
-            return Math.PI;
-        }
-
-        if (now.lessThan(sunrise)) {
-            var prevSunset = Weather.getSunset(loc, today.subtract(new Time.Duration(86400)));
-            return (prevSunset == null) ? Math.PI : arcAngle(now, prevSunset, sunrise, Math.PI, 2 * Math.PI);
-        } else if (now.lessThan(sunset)) {
-            return arcAngle(now, sunrise, sunset, 0.0, Math.PI);
-        } else {
-            var nextSunrise = Weather.getSunrise(loc, today.add(new Time.Duration(86400)));
-            return (nextSunrise == null) ? Math.PI : arcAngle(now, sunset, nextSunrise, Math.PI, 2 * Math.PI);
-        }
-    }
-
-    // Fraction of the way through the current lunar cycle, 0..1 (0 = new moon).
-    function getMoonPhase() as Float {
-        var knownNewMoon = Gregorian.moment({:year=>2000, :month=>1, :day=>6, :hour=>18, :minute=>14});
-        var synodicMonthSeconds = 29.530588853 * 86400;
-        var elapsed = Time.now().subtract(knownNewMoon).value().toFloat();
-        var cycles = elapsed / synodicMonthSeconds;
-        return cycles - Math.floor(cycles);
-    }
-
-    // Selects the moon-phase glyph (A..O) for the current lunar phase: O is
-    // the thinnest waxing crescent (phase just after 0), H is full moon
-    // (phase 0.5), and A is the thinnest waning crescent (phase just before
-    // the next new moon) -- so the glyph index runs opposite to phase.
+    // Selects the moon-phase glyph (A..P) for watch_data.MoonPhase: the 16
+    // glyphs are evenly spaced around the cycle, A at phase 0 (new moon)
+    // and I at phase 0.5 (full moon), wrapping back to A at phase 1. The
+    // font's image set runs right-to-left through the cycle (mirrored),
+    // so the index walks backward from A instead of forward -- A and I
+    // land in the same place either way since they're exactly half a
+    // (even-sized) cycle apart.
     function getMoonPhaseChar() as String {
-        var phase = getMoonPhase();
-        var lastIndex = moonPhaseChars.size() - 1;
-        var idx = Math.round(lastIndex * (1 - phase)).toNumber();
+        var phase = watch_data.MoonPhase;
+        var count = moonPhaseChars.size();
+        var idx = Math.round(-phase * count).toNumber() % count;
         if (idx < 0) {
-            idx = 0;
-        } else if (idx > lastIndex) {
-            idx = lastIndex;
+            idx += count;
         }
         return moonPhaseChars[idx];
-    }
-
-    // Linear interpolation of `now` between `start` and `end`, mapped from
-    // startAngle to endAngle.
-    function arcAngle(now as Time.Moment, start as Time.Moment, end as Time.Moment, startAngle as Float, endAngle as Float) as Float {
-        var frac = (now.value() - start.value()).toFloat() / (end.value() - start.value());
-        return startAngle + frac * (endAngle - startAngle);
-    }
-
-    // Converts a raw 0..2*PI angle (0 = rise, PI = set) to a standard polar
-    // angle, with rise/set remapped from PI/0 to 5*PI/6 / PI/6 (i.e. the sun
-    // and moon stay within the upper part of the circle instead of touching
-    // the horizontal edges), wrapped to (-PI..PI].
-    function toSkyAngle(raw as Float) as Float {
-        while (raw >= 2 * Math.PI) { raw -= 2 * Math.PI; }
-        while (raw < 0) { raw += 2 * Math.PI; }
-
-        var riseAngle = 5 * Math.PI / 6;
-        var setAngle = Math.PI / 6;
-
-        var angle;
-        if (raw <= Math.PI) {
-            // day: raw 0..PI -> riseAngle..setAngle
-            angle = riseAngle + (raw / Math.PI) * (setAngle - riseAngle);
-        } else {
-            // night: raw PI..2*PI -> setAngle..(riseAngle - 2*PI)
-            var t = (raw - Math.PI) / Math.PI;
-            angle = setAngle + t * ((riseAngle - 2 * Math.PI) - setAngle);
-        }
-
-        while (angle > Math.PI) { angle -= 2 * Math.PI; }
-        while (angle <= -Math.PI) { angle += 2 * Math.PI; }
-        return angle;
     }
 
     function getWindChar(windBear as Number) as String {
@@ -386,8 +275,8 @@ class SunWatchFaceView extends WatchUi.WatchFace {
     }
 
     function drawSky(dc as Dc) as Void {
-        var sun_angle = getSunAngle();
-        var moon_angle = getMoonAngle();
+        var sun_angle = watch_data.SunAngle;
+        var moon_angle = watch_data.MoonAngle;
         var is_day = (sun_angle > 0 and sun_angle < Math.PI);
         var sun = View.findDrawableById("Sun") as Bitmap;
         var moon = View.findDrawableById("Moon") as Text;
