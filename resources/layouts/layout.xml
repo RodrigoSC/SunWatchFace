@@ -1,10 +1,20 @@
 <layout id="WatchFace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
     <bitmap id="SkySun" filename="sky-sun.png" visible="false"/>
     <bitmap id="SkyNight" filename="sky-night.png" visible="false"></bitmap>
-    <bitmap id="Sun" filename="sun.png" visible="false"></bitmap>
-    <label id="Moon" font="@Fonts.Moon" color="Graphics.COLOR_WHITE"></label>
-    <bitmap id="Background" filename="background.png"  />
     
+    <label id="RiseBg" x="9%" y="35%"
+        font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_LEFT" color="#373737" />
+    <label
+        id="Rise" x="9%" y="35%" font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_LEFT"
+        color="Graphics.COLOR_LT_GRAY" />
+
+    <label id="SetBg" x="91%" y="35%"
+        font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_RIGHT" color="#373737" />
+    <label
+        id="Set" x="91%" y="35%" font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_RIGHT"
+        color="Graphics.COLOR_LT_GRAY" />
+
+
     <label id="DateBg" x="95%" y="center"
         font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_RIGHT" color="#373737" />
     <label

@@ -9,6 +9,8 @@ import Toybox.Time;
 class SunWatchFaceView extends WatchUi.WatchFace {
     private var lastSlowUpdate as Number? = null;
     private var watch_data as WatchData = new WatchData();
+    private var moonFont as WatchUi.FontResource?;
+    private var sunBitmap as Graphics.BitmapType?;
 
     private var screenWidth as Number, screenHeight as Number;
 
@@ -25,6 +27,8 @@ class SunWatchFaceView extends WatchUi.WatchFace {
         var settings = Toybox.System.getDeviceSettings();
         screenWidth = settings.screenWidth;
         screenHeight = settings.screenHeight;
+        moonFont = WatchUi.loadResource(Rez.Fonts.Moon) as WatchUi.FontResource;
+        sunBitmap = WatchUi.loadResource(Rez.Drawables.Sun) as Graphics.BitmapType;
     }
 
     // Load your resources here
@@ -67,6 +71,12 @@ class SunWatchFaceView extends WatchUi.WatchFace {
             }
             writeToLED("Weather",tempData);
         }
+
+        var nextRise = nextMoment(watch_data.Sunrise, watch_data.MoonRise, now);
+        var nextSet = nextMoment(watch_data.Sunset, watch_data.MoonSet, now);
+        writeToLED("Rise", nextRise != null ? formatTime(nextRise) : "--:--");
+        writeToLED("Set", nextSet != null ? formatTime(nextSet) : "--:--");
+
         var info = ActivityMonitor.getInfo();
         writeToLED("Steps",padNumber(toThousands(info.steps)));
         writeToLED("Floors",padNumber(toThousands(info.floorsClimbed)));
@@ -83,7 +93,7 @@ class SunWatchFaceView extends WatchUi.WatchFace {
 
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
-        drawTicks(dc, 3, 5, 2, Math.PI / 6);
+        drawTicks(dc, 3, 7, 2, Math.PI / 6);
         drawSky(dc);
         drawHands(dc, clockTime.hour, clockTime.min, clockTime.sec);
     }
@@ -233,6 +243,29 @@ class SunWatchFaceView extends WatchUi.WatchFace {
         return "-";
     }
 
+    // Picks whichever of two candidate moments is soonest but still ahead of
+    // now (so an already-passed moonrise/moonset from the rough phase-based
+    // approximation doesn't win out over an upcoming sunrise/sunset). Falls
+    // back to whichever one is in the future if only one is, or null if
+    // neither is (missing location data, or both already passed).
+    function nextMoment(a as Time.Moment?, b as Time.Moment?, now as Time.Moment) as Time.Moment? {
+        var aFuture = (a != null) and now.lessThan(a);
+        var bFuture = (b != null) and now.lessThan(b);
+        if (aFuture and bFuture) {
+            return a.lessThan(b) ? a : b;
+        } else if (aFuture) {
+            return a;
+        } else if (bFuture) {
+            return b;
+        }
+        return null;
+    }
+
+    function formatTime(moment as Time.Moment) as String {
+        var info = Gregorian.info(moment, Time.FORMAT_SHORT);
+        return padNumber(info.hour.toString()) + ":" + padNumber(info.min.toString());
+    }
+
     function writeToLED(fieldId as String, value as String) {
         var mask = "";
         for (var i = 0; i < value.length(); i++) { mask += "$"; }
@@ -274,43 +307,77 @@ class SunWatchFaceView extends WatchUi.WatchFace {
         }
     }
 
+    // Sky graphics (sun, moon) never render below this y -- the sky-sun.png
+    // /sky-night.png art ends in a flat line at this height, so a plain
+    // rectangular clip is enough to keep the sun/moon disc from bleeding
+    // onto the LED digits below, no per-shape masking needed.
+    private const skyClipHeight = 150;
+
     function drawSky(dc as Dc) as Void {
         var sun_angle = watch_data.SunAngle;
         var moon_angle = watch_data.MoonAngle;
-        var is_day = (sun_angle > 0 and sun_angle < Math.PI);
-        var sun = View.findDrawableById("Sun") as Bitmap;
-        var moon = View.findDrawableById("Moon") as Text;
+        var is_day = watch_data.IsDay;
         var sky_sun = View.findDrawableById("SkySun") as Bitmap;
         var sky_night = View.findDrawableById("SkyNight") as Bitmap;
         var radius = 173;
-        
-        if (is_day) {
-            var sin = Math.sin(sun_angle);
-            var cos = Math.cos(sun_angle);
 
-            var half = 45 / 2.0;
-            var x = screenWidth / 2 + radius * cos - half;
-            var y = screenHeight / 2 - radius * sin - half;
-            
-            sun.setLocation(x, y);
-        } 
-        if (moon_angle > 0 and moon_angle < Math.PI) {
-            var sin = Math.sin(moon_angle);
-            var cos = Math.cos(moon_angle);
-            
-            var half = 45 / 2.0;
-            var x = screenWidth / 2 + radius * cos - half;
-            var y = screenHeight / 2 - radius * sin - half;
-            
-            moon.setLocation(x, y);
-            moon.setVisible(true);
-            moon.setText(getMoonPhaseChar());
-        } else {
-            moon.setVisible(false);
-        }
         sky_sun.setVisible(is_day);
         sky_night.setVisible(!is_day);
-        sun.setVisible(is_day);
+
+        dc.setClip(0, 0, screenWidth, skyClipHeight);
+        if (is_day) {
+            drawSun(dc, sun_angle, radius);
+        }
+        if (moon_angle > 0 and moon_angle < Math.PI) {
+            drawMoon(dc, moon_angle, radius);
+        }
+        dc.clearClip();
+    }
+
+    function drawSun(dc as Dc, angle as Float, radius as Number) as Void {
+        var half = 45 / 2.0;
+        var x = screenWidth / 2 + radius * Math.cos(angle) - half;
+        var y = screenHeight / 2 - radius * Math.sin(angle) - half;
+
+        dc.drawBitmap(x.toNumber(), y.toNumber(), sunBitmap);
+    }
+
+    // Renders the moon-phase glyph rotated to stay radially aligned with the
+    // arc: upright at the zenith (angle = PI/2), tilting toward the horizon
+    // on either side, the way the real terminator's apparent orientation
+    // shifts as the moon crosses the sky. WatchUi.Text can't be rotated, so
+    // this draws the glyph into an offscreen buffer and spins that with an
+    // AffineTransform instead, same technique as drawTicks/drawHandBasic.
+    // The caller (drawSky) already has the sky clip rect active, so no
+    // per-position masking is needed here.
+    function drawMoon(dc as Dc, angle as Float, radius as Number) as Void {
+        var size = 45;
+        var pad = 6;
+        var buffer = Graphics.createBufferedBitmap({ :width=>size+pad, :height=>size+pad });
+        var tmpDc = buffer.get().getDc();
+
+        tmpDc.setColor(Graphics.COLOR_TRANSPARENT, Graphics.COLOR_TRANSPARENT);
+        tmpDc.clear();
+        tmpDc.setAntiAlias(true);
+        tmpDc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        tmpDc.drawText(pad / 2, pad / 2, moonFont, getMoonPhaseChar(), Graphics.TEXT_JUSTIFY_LEFT);
+
+        var theta = Math.PI / 2 - angle;
+        var rSin = Math.sin(theta);
+        var rCos = Math.cos(theta);
+        var pivot = pad / 2 + size / 2.0;
+
+        var transformMatrix = new Graphics.AffineTransform();
+        transformMatrix.translate(-pivot * rCos + pivot * rSin, -pivot * rCos - pivot * rSin);
+        transformMatrix.rotate(theta);
+
+        var x = screenWidth / 2 + radius * Math.cos(angle);
+        var y = screenHeight / 2 - radius * Math.sin(angle);
+
+        dc.drawBitmap2(x, y, buffer, {
+            :transform => transformMatrix,
+            :filterMode => Graphics.FILTER_MODE_BILINEAR
+        });
     }
 
 }

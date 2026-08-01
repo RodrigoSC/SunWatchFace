@@ -18,10 +18,9 @@ class WatchData {
     public var MoonSet as Time.Moment?;
     public var Location as Position.Location?;
 
-    // Angle of the sun in the sky: 5*PI/6 at sunrise (upper left), PI/2 at
-    // solar noon (top), PI/6 at sunset (upper right) -- standard polar
-    // angle, sweeping left to right across the day, then continuing on
-    // down and back around to 5*PI/6 across the bottom overnight.
+    // Angle of the sun in the sky: 8*PI/9 at sunrise (upper left), PI/2 at
+    // solar noon (top), PI/9 at sunset (upper right) -- standard polar
+    // angle, sweeping left to right across the day.
     public var SunAngle as Float = Math.PI;
 
     // Approximates the moon's position by offsetting the sun's arc by the
@@ -35,6 +34,11 @@ class WatchData {
 
     // Fraction of the way through the current lunar cycle, 0..1 (0 = new moon).
     public var MoonPhase as Float = 0.0;
+
+    // Whether it's currently daytime, from a direct now-vs-sunrise/sunset
+    // comparison (see getSunRawAngle) rather than inferred from SunAngle's
+    // wrapped range. Refreshed every frame by refreshSunPosition().
+    public var IsDay as Boolean = true;
 
     function initialize() {
     }
@@ -105,7 +109,10 @@ class WatchData {
             return;
         }
 
-        var phase = computeMoonPhase();
+        // Pinned to "today" rather than "now": using a live phase here would
+        // make the computed rise/set targets creep forward on every refresh
+        // as the phase keeps advancing, even within the same night.
+        var phase = computeMoonPhase(today);
         var riseTarget = wrapRaw(phase * 2 * Math.PI);
         var setTarget = wrapRaw(Math.PI + phase * 2 * Math.PI);
 
@@ -141,14 +148,18 @@ class WatchData {
         var raw = getSunRawAngle();
         SunAngle = toSkyAngle(raw);
 
-        MoonPhase = computeMoonPhase();
+        MoonPhase = computeMoonPhase(Time.now());
         MoonAngle = toSkyAngle(raw - MoonPhase * 2 * Math.PI);
     }
 
-    // Raw angle in 0..2*PI, with 0 = sunrise, PI = sunset.
+    // Raw angle in 0..2*PI, with 0 = sunrise, PI = sunset. Also refreshes
+    // IsDay from the same sunrise/sunset comparison, since it's the direct
+    // source of truth for day/night (as opposed to inferring it from
+    // SunAngle's wrapped range).
     private function getSunRawAngle() as Float {
         var loc = Location;
         if (loc == null) {
+            IsDay = true;
             return Math.PI;
         }
 
@@ -157,25 +168,30 @@ class WatchData {
         var sunrise = Weather.getSunrise(loc, today);
         var sunset = Weather.getSunset(loc, today);
         if (sunrise == null || sunset == null) {
+            IsDay = true;
             return Math.PI;
         }
 
         if (now.lessThan(sunrise)) {
+            IsDay = false;
             var prevSunset = Weather.getSunset(loc, today.subtract(new Time.Duration(86400)));
             return (prevSunset == null) ? Math.PI : arcAngle(now, prevSunset, sunrise, Math.PI, 2 * Math.PI);
         } else if (now.lessThan(sunset)) {
+            IsDay = true;
             return arcAngle(now, sunrise, sunset, 0.0, Math.PI);
         } else {
+            IsDay = false;
             var nextSunrise = Weather.getSunrise(loc, today.add(new Time.Duration(86400)));
             return (nextSunrise == null) ? Math.PI : arcAngle(now, sunset, nextSunrise, Math.PI, 2 * Math.PI);
         }
     }
 
-    // Fraction of the way through the current lunar cycle, 0..1 (0 = new moon).
-    private function computeMoonPhase() as Float {
+    // Fraction of the way through the lunar cycle at the given moment, 0..1
+    // (0 = new moon).
+    private function computeMoonPhase(at as Time.Moment) as Float {
         var knownNewMoon = Gregorian.moment({:year=>2000, :month=>1, :day=>6, :hour=>18, :minute=>14});
         var synodicMonthSeconds = 29.530588853 * 86400;
-        var elapsed = Time.now().subtract(knownNewMoon).value().toFloat();
+        var elapsed = at.subtract(knownNewMoon).value().toFloat();
         var cycles = elapsed / synodicMonthSeconds;
         return cycles - Math.floor(cycles);
     }
@@ -195,8 +211,8 @@ class WatchData {
         while (raw >= 2 * Math.PI) { raw -= 2 * Math.PI; }
         while (raw < 0) { raw += 2 * Math.PI; }
 
-        var riseAngle = 5 * Math.PI / 6;
-        var setAngle = Math.PI / 6;
+        var riseAngle = 8 * Math.PI / 9;
+        var setAngle = Math.PI / 9;
 
         var angle;
         if (raw <= Math.PI) {
