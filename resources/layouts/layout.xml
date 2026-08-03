@@ -1,18 +1,24 @@
 <layout id="WatchFace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
     <bitmap id="SkySun" filename="sky-sun.png" visible="false"/>
-    <bitmap id="SkyNight" filename="sky-night.png" visible="false"></bitmap>
+    <bitmap id="SkyNight" filename="sky-night.png" visible="true"/>
     
-    <label id="RiseBg" x="9%" y="35%"
+    <label id="RiseBg" x="7%" y="35%"
         font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_LEFT" color="#373737" />
     <label
-        id="Rise" x="9%" y="35%" font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_LEFT"
+        id="Rise" x="7%" y="35%" font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_LEFT"
         color="Graphics.COLOR_LT_GRAY" />
 
-    <label id="SetBg" x="91%" y="35%"
+    <label id="SetBg" x="93%" y="35%"
         font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_RIGHT" color="#373737" />
     <label
-        id="Set" x="91%" y="35%" font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_RIGHT"
+        id="Set" x="93%" y="35%" font="@Fonts.LedSmall" justification="Graphics.TEXT_JUSTIFY_RIGHT"
         color="Graphics.COLOR_LT_GRAY" />
+
+    <label id="AltTimeBg" x="5%" y="center"
+        font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_LEFT" color="#373737" visible="false"/>
+    <label
+        id="AltTime" x="5%" y="center" font="@Fonts.Led" justification="Graphics.TEXT_JUSTIFY_LEFT"
+        color="Graphics.COLOR_LT_GRAY" visible="false" />
 
 
     <label id="DateBg" x="95%" y="center"

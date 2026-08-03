@@ -77,6 +77,14 @@ class SunWatchFaceView extends WatchUi.WatchFace {
         writeToLED("Rise", nextRise != null ? formatTime(nextRise) : "--:--");
         writeToLED("Set", nextSet != null ? formatTime(nextSet) : "--:--");
 
+        var altOffset = Application.Properties.getValue("AltTimezoneOffset") as Number?;
+        var showAltTime = altOffset != null && altOffset != -9999;
+        (View.findDrawableById("AltTimeBg") as Text).setVisible(showAltTime);
+        (View.findDrawableById("AltTime") as Text).setVisible(showAltTime);        
+        if (showAltTime) {
+            writeToLED("AltTime",formatAltTimezone(altOffset));
+        }
+
         var info = ActivityMonitor.getInfo();
         writeToLED("Steps",padNumber(toThousands(info.steps)));
         writeToLED("Floors",padNumber(toThousands(info.floorsClimbed)));
@@ -141,6 +149,16 @@ class SunWatchFaceView extends WatchUi.WatchFace {
         }
     }
 
+    function formatAltTimezone(offsetMinutes as Number) as String {
+        var utc = Gregorian.utcInfo(Time.now(), Time.FORMAT_SHORT);
+        var totalMins = ((utc.hour * 60 + utc.min + offsetMinutes) % 1440 + 1440) % 1440;
+        var h = totalMins / 60;
+        var m = totalMins % 60;
+        var hh = h < 10 ? "0" + h.toString() : h.toString();
+        var mm = m < 10 ? "0" + m.toString() : m.toString();
+        return hh + ":" + mm;
+    }
+    
     function drawHands(dc, clock_hour, clock_min, clock_sec) {
         var bigHandSize = screenWidth/2 - 40;
         var smallHandSize = bigHandSize - 70;

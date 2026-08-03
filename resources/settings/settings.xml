@@ -1,20 +1,53 @@
-<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+<resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
 
-    <setting propertyKey="@Properties.BackgroundColor" title="@Strings.BackgroundColorTitle">
-        <settingConfig type="list">
-            <listEntry value="0x000000">@Strings.ColorBlack</listEntry>
-            <listEntry value="0x555555">@Strings.ColorDarkGray</listEntry>
-            <listEntry value="0xAAAAAA">@Strings.ColorLightGray</listEntry>
-            <listEntry value="0xFFFFFF">@Strings.ColorWhite</listEntry>
-        </settingConfig>
-    </setting>
+    <properties>
+        <property id="AltTimezoneOffset" type="number">-9999</property>
+    </properties>
 
-    <setting propertyKey="@Properties.ForegroundColor" title="@Strings.ForegroundColorTitle">
-        <settingConfig type="list">
-            <listEntry value="0x000000">@Strings.ColorBlack</listEntry>
-            <listEntry value="0x0000FF">@Strings.ColorBlue</listEntry>
-            <listEntry value="0xFF0000">@Strings.ColorRed</listEntry>
-            <listEntry value="0xFFFFFF">@Strings.ColorWhite</listEntry>
-        </settingConfig>
-    </setting>
-</settings>
+    <settings>
+        <setting propertyKey="@Properties.AltTimezoneOffset" title="Alternative Timezone">
+            <settingConfig type="list">
+                <listEntry value="-9999">None</listEntry>
+                <listEntry value="-720">UTC-12:00</listEntry>
+                <listEntry value="-660">UTC-11:00</listEntry>
+                <listEntry value="-600">UTC-10:00</listEntry>
+                <listEntry value="-570">UTC-9:30</listEntry>
+                <listEntry value="-540">UTC-9:00</listEntry>
+                <listEntry value="-480">UTC-8:00</listEntry>
+                <listEntry value="-420">UTC-7:00</listEntry>
+                <listEntry value="-360">UTC-6:00</listEntry>
+                <listEntry value="-300">UTC-5:00</listEntry>
+                <listEntry value="-240">UTC-4:00</listEntry>
+                <listEntry value="-210">UTC-3:30</listEntry>
+                <listEntry value="-180">UTC-3:00</listEntry>
+                <listEntry value="-120">UTC-2:00</listEntry>
+                <listEntry value="-60">UTC-1:00</listEntry>
+                <listEntry value="0">UTC+0:00</listEntry>
+                <listEntry value="60">UTC+1:00</listEntry>
+                <listEntry value="120">UTC+2:00</listEntry>
+                <listEntry value="180">UTC+3:00</listEntry>
+                <listEntry value="210">UTC+3:30</listEntry>
+                <listEntry value="240">UTC+4:00</listEntry>
+                <listEntry value="270">UTC+4:30</listEntry>
+                <listEntry value="300">UTC+5:00</listEntry>
+                <listEntry value="330">UTC+5:30</listEntry>
+                <listEntry value="345">UTC+5:45</listEntry>
+                <listEntry value="360">UTC+6:00</listEntry>
+                <listEntry value="390">UTC+6:30</listEntry>
+                <listEntry value="420">UTC+7:00</listEntry>
+                <listEntry value="480">UTC+8:00</listEntry>
+                <listEntry value="525">UTC+8:45</listEntry>
+                <listEntry value="540">UTC+9:00</listEntry>
+                <listEntry value="570">UTC+9:30</listEntry>
+                <listEntry value="600">UTC+10:00</listEntry>
+                <listEntry value="630">UTC+10:30</listEntry>
+                <listEntry value="660">UTC+11:00</listEntry>
+                <listEntry value="720">UTC+12:00</listEntry>
+                <listEntry value="765">UTC+12:45</listEntry>
+                <listEntry value="780">UTC+13:00</listEntry>
+                <listEntry value="840">UTC+14:00</listEntry>
+            </settingConfig>
+        </setting>
+    </settings>
+
+</resources>
