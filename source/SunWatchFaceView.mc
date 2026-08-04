@@ -87,7 +87,9 @@ class SunWatchFaceView extends WatchUi.WatchFace {
 
         var info = ActivityMonitor.getInfo();
         writeToLED("Steps",padNumber(toThousands(info.steps)));
-        writeToLED("Floors",padNumber(toThousands(info.floorsClimbed)));
+        if (View.findDrawableById("Floors") != null) {
+            writeToLED("Floors",padNumber(toThousands(info.floorsClimbed)));
+        }
 
         var notifications = System.getDeviceSettings().notificationCount;
         var notifStr = (notifications > 0) 
@@ -130,7 +132,7 @@ class SunWatchFaceView extends WatchUi.WatchFace {
         tmpDc.setColor(Graphics.COLOR_TRANSPARENT, Graphics.COLOR_TRANSPARENT);
         tmpDc.clear();
         tmpDc.setAntiAlias(true);
-        tmpDc.setFill(colorDim);
+        tmpDc.setColor(colorDim, Graphics.COLOR_TRANSPARENT);
         tmpDc.fillRoundedRectangle(0, 0, width, height, round);
 
         var transformMatrix = new Graphics.AffineTransform();
@@ -209,12 +211,10 @@ class SunWatchFaceView extends WatchUi.WatchFace {
 
         // Hollow blade running the full length of the hand
         tmpDc.setColor(handColour, Graphics.COLOR_TRANSPARENT);
-        tmpDc.setStroke(handColour);
         tmpDc.setPenWidth(strokeWidth);
         tmpDc.drawRectangle(half, half, width, height + centerOffset);
 
         // Solid hub straddling the pivot, drawn on top of the blade
-        tmpDc.setFill(handColour);
         tmpDc.fillRectangle(half, half, hubWidth, hubLength);
 
         var pivotX = half + width / 2;
@@ -307,8 +307,17 @@ class SunWatchFaceView extends WatchUi.WatchFace {
         return nbr.length() < 2 ? "0" + nbr : nbr;
     }
 
+    (:Round454)
     function adjustPositions() {
         var leds = ["Notifs", "Steps", "Floors"];
+        for (var i=0; i < leds.size(); i++) {
+            adjustLedVal(leds[i]);
+        }
+    }
+
+    (:Round390)
+    function adjustPositions() {
+        var leds = ["Notifs", "Steps"];
         for (var i=0; i < leds.size(); i++) {
             adjustLedVal(leds[i]);
         }
@@ -329,7 +338,10 @@ class SunWatchFaceView extends WatchUi.WatchFace {
     // /sky-night.png art ends in a flat line at this height, so a plain
     // rectangular clip is enough to keep the sun/moon disc from bleeding
     // onto the LED digits below, no per-shape masking needed.
-    private const skyClipHeight = 150;
+    (:Round454) private const skyClipHeight = 150;
+    (:Round390) private const skyClipHeight = 128;
+    (:Round454) var radius = 173;
+    (:Round390) var radius = 148;
 
     function drawSky(dc as Dc) as Void {
         var sun_angle = watch_data.SunAngle;
@@ -337,7 +349,6 @@ class SunWatchFaceView extends WatchUi.WatchFace {
         var is_day = watch_data.IsDay;
         var sky_sun = View.findDrawableById("SkySun") as Bitmap;
         var sky_night = View.findDrawableById("SkyNight") as Bitmap;
-        var radius = 173;
 
         sky_sun.setVisible(is_day);
         sky_night.setVisible(!is_day);

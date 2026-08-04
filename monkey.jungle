@@ -1,1 +1,7 @@
 project.manifest = manifest.xml
+
+vivoactive5.resourcePath = $(vivoactive5.resourcePath);resources-390
+
+fr965.excludeAnnotations        = Round390
+venu3.excludeAnnotations        = Round390
+vivoactive5.excludeAnnotations  = Round454
